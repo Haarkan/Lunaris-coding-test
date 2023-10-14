@@ -10,15 +10,6 @@ defmodule LunarisApi.OrdersTest do
     @update_attrs %{currency: "some updated currency", amount: 456.7}
     @invalid_attrs %{currency: nil, amount: nil}
 
-    def order_fixture(attrs \\ %{}) do
-      {:ok, order} =
-        attrs
-        |> Enum.into(@valid_attrs)
-        |> Orders.create_order()
-
-      order
-    end
-
     test "create_order/1 with valid data creates a order" do
       assert {:ok, %Order{} = order} = Orders.create_order(@valid_attrs)
       assert order.currency == "some currency"

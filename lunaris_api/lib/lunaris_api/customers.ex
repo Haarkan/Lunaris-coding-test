@@ -10,13 +10,13 @@ defmodule LunarisApi.Customers do
 
   @doc """
   Get a customer by its email.
-  Returns an error if customere does not exist
+  Returns an nil if customere does not exist
   """
   def get_by_email(email), do: Repo.get_by(Customer, email: email)
 
   @doc """
   Get the balance of a customer by its email.
-  Returns an error if customer does not exist
+  Returns an nil if customer does not exist
   """
   def get_balance_by_email(email) do
     from(c in Customer, where: c.email == ^email, select: c.balance)
@@ -25,7 +25,6 @@ defmodule LunarisApi.Customers do
 
   @doc """
   Changes the balance of a customer.
-  Returns an error if customer does not exist
   """
   def change_balance(customer, points) do
     Repo.update(Customer.changeset(customer, %{balance: customer.balance + points}))

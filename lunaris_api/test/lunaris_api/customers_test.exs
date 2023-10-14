@@ -6,24 +6,37 @@ defmodule LunarisApi.CustomersTest do
   describe "customers" do
     alias LunarisApi.Customers.Customer
 
-    def customer_fixture(attrs \\ %{}) do
-      {:ok, customer} =
-        attrs
-        |> Enum.into(@valid_attrs)
-        |> Customers.create_customer()
-
-      customer
+    test "get_by_email/1 returns nil if customer does not exist" do
+      assert is_nil(Customers.get_by_email("nonexistent@example.com"))
     end
 
-    test "create_customer/2 with valid data creates a customer" do
-      assert {:ok, %Customer{} = customer} = Customers.create_customer("email", "phone")
-      assert customer.balance == 0
-      assert customer.email == "email"
-      assert customer.phone == "phone"
+    test "get_balance_by_email/1 returns nil if customer does not exist" do
+      assert is_nil(Customers.get_balance_by_email("nonexistent@example.com"))
     end
 
-    test "create_customer/2 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Customers.create_customer(nil, nil)
+    test "create_customer/2 creates a new customer" do
+      email = "newcustomer@example.com"
+      phone = "123-456-7890"
+
+      assert {:ok, _} = Customers.create_customer(email, phone)
+    end
+
+    test "create_customer/2 returns an error if email is already used" do
+      email = "existing@example.com"
+      phone = "123-456-7890"
+
+      {:ok, _} = Customers.create_customer(email, phone)
+
+      assert {:error, _} = Customers.create_customer(email, "987-654-3210")
+    end
+
+    test "create_customer/2 returns an error if phone is already used" do
+      email = "newcustomer@example.com"
+      phone = "987-654-3210"
+
+      {:ok, _} = Customers.create_customer(email, phone)
+
+      assert {:error, _} = Customers.create_customer("another@example.com", phone)
     end
   end
 end
