@@ -37,4 +37,34 @@ defmodule LunarisApiWeb.CustomerController do
         |> json(%{message: "Error while create user"})
       end
   end
+
+  @valid_actions ["add", "substract"]
+  def change_balance(conn, %{"email" => email, "points" => points, "action" => action}) when action in @valid_actions do
+
+      case Customers.get_by_email(email) do
+        nil ->
+          conn
+          |> put_status(:not_found)
+          |> json(%{error: "Customer not found"})
+
+        customer ->
+          adjusted_points =
+            case action do
+              "add" -> points
+              "substract" -> -points
+            end
+
+          case Customers.change_balance(customer, adjusted_points) do
+            {:ok, _} ->
+              conn
+              |> put_status(:ok)
+              |> json(%{message: "Balance changed!"})
+
+            {:error, _} ->
+              conn
+              |> put_status(:internal_server_error)
+              |> json(%{message: "Error while changing balance"})
+          end
+      end
+  end
 end

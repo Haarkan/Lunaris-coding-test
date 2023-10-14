@@ -9,6 +9,7 @@ defmodule LunarisApiWeb.Router do
     pipe_through(:api)
     post("/order", OrderController, :create_order)
     post("/customer", CustomerController, :create_customer)
+    put("/customer/balance", CustomerController, :change_balance)
     get("/customer/:email/balance", CustomerController, :get_balance)
   end
 

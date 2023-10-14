@@ -19,6 +19,10 @@ defmodule LunarisApi.Customers do
     Repo.update(Customer.changeset(customer, %{balance: customer.balance + points}))
   end
 
+  def change_balance(customer, points) do
+    Repo.update(Customer.changeset(customer, %{balance: customer.balance + points}))
+  end
+
   def create_customer(email, phone),
     do: Repo.insert(Customer.changeset(%Customer{}, %{email: email, phone: phone, balance: 0.0}))
 end
