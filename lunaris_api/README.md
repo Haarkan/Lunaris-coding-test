@@ -81,3 +81,4 @@ curl --location --request PUT 'http://localhost:4000/api/customer/balance' \
 - More in deep @docs
 - Customer authentication on order creation
 - Store the percentage in database for friendlier configuration (would require admin auth)
+- Better error handling and HTTP status
