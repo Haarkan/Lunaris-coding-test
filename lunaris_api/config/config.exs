@@ -9,7 +9,10 @@ use Mix.Config
 
 config :lunaris_api,
   ecto_repos: [LunarisApi.Repo],
-  generators: [binary_id: true]
+  generators: [binary_id: true],
+  point_percentage: 1.0
+
+
 
 # Configures the endpoint
 config :lunaris_api, LunarisApiWeb.Endpoint,

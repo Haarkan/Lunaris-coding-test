@@ -37,7 +37,8 @@ defmodule LunarisApiWeb.OrderController do
   end
 
   defp reward(customer, price) do
-    points = price * 0.01
+    percentage = LunarisApi.PointPercentage.percentage()
+    points = percentage / 100 * price
     Customers.change_balance(customer, points)
   end
 end
