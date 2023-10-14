@@ -1,96 +1,151 @@
 defmodule LunarisApiWeb.CustomerControllerTest do
   use LunarisApiWeb.ConnCase
-
   alias LunarisApi.Customers
-  alias LunarisApi.Customers.Customer
 
-  @create_attrs %{
-    balance: 120.5,
-    email: "some email",
-    phone: "some phone"
-  }
-  @update_attrs %{
-    balance: 456.7,
-    email: "some updated email",
-    phone: "some updated phone"
-  }
-  @invalid_attrs %{balance: nil, email: nil, phone: nil}
+  # Test for GET /customer to fetch customer balance
+  test "GET /customer fetch customer balance for an existing customer", %{conn: conn} do
+    # GIVEN
+    new_email = "new@example.com"
+    new_phone = "111-222-3333"
+    expected_body = "{\"balance\":0.0}"
+    Customers.create_customer(new_email, new_phone)
 
-  def fixture(:customer) do
-    {:ok, customer} = Customers.create_customer(@create_attrs)
-    customer
+    # WHEN
+    conn = get(conn, Routes.customer_path(conn, :get_balance, new_email))
+
+    # THEN
+    assert conn.status == 200
+    assert conn.resp_body == expected_body
   end
 
-  setup %{conn: conn} do
-    {:ok, conn: put_req_header(conn, "accept", "application/json")}
+   # Test for GET /customer to fetch customer balance
+   test "GET /customer fetch customer balance for a non existing customer", %{conn: conn} do
+    # GIVEN
+    unknown_email = "unknown@example.com"
+    # WHEN
+    conn = get(conn, Routes.customer_path(conn, :get_balance, unknown_email))
+    # THEN
+    assert conn.status == 404
   end
 
-  describe "index" do
-    test "lists all customers", %{conn: conn} do
-      conn = get(conn, Routes.customer_path(conn, :index))
-      assert json_response(conn, 200)["data"] == []
-    end
+   # Test for POST /customer to create a customer
+  test "POST /customer create customer", %{conn: conn} do
+    # GIVEN
+    new_email = "new@example.com"
+    new_phone = "111-222-3333"
+    params = %{"email" => new_phone, "phone" => new_phone}
+
+    # WHEN
+    conn = post(conn, Routes.customer_path(conn, :create_customer), params)
+
+    # THEN
+    assert conn.status == 201
+    assert conn.resp_body == "{\"message\":\"Customer created\"}"
   end
 
-  describe "create customer" do
-    test "renders customer when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.customer_path(conn, :create), customer: @create_attrs)
-      assert %{"id" => id} = json_response(conn, 201)["data"]
+  test "POST /customer create customer with an existing email", %{conn: conn} do
+    # GIVEN
+    existing_email = "existing@example.com"
+    existing_phone = "111-222-3333"
+    new_phone = "123-456-7890"
+    Customers.create_customer(existing_email, existing_phone)
 
-      conn = get(conn, Routes.customer_path(conn, :show, id))
+    # WHEN
+    params = %{"email" => existing_email, "phone" => existing_phone}
+    conn = post(conn, Routes.customer_path(conn, :create_customer), params)
 
-      assert %{
-               "id" => id,
-               "balance" => 120.5,
-               "email" => "some email",
-               "phone" => "some phone"
-             } = json_response(conn, 200)["data"]
-    end
-
-    test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.customer_path(conn, :create), customer: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
+    # THEN
+    assert conn.status == 400
   end
 
-  describe "update customer" do
-    setup [:create_customer]
+  test "POST /customer create customer with an existing phone", %{conn: conn} do
+    # GIVEN
+    existing_email = "example@example.com"
+    existing_phone = "123-456-7890"
+    new_email = "new@example.com"
+    Customers.create_customer(existing_email, existing_phone)
 
-    test "renders customer when data is valid", %{conn: conn, customer: %Customer{id: id} = customer} do
-      conn = put(conn, Routes.customer_path(conn, :update, customer), customer: @update_attrs)
-      assert %{"id" => ^id} = json_response(conn, 200)["data"]
+    # WHEN
+    params = %{"email" => new_email, "phone" => existing_phone}
+    conn = post(conn, Routes.customer_path(conn, :create_customer), params)
 
-      conn = get(conn, Routes.customer_path(conn, :show, id))
-
-      assert %{
-               "id" => id,
-               "balance" => 456.7,
-               "email" => "some updated email",
-               "phone" => "some updated phone"
-             } = json_response(conn, 200)["data"]
-    end
-
-    test "renders errors when data is invalid", %{conn: conn, customer: customer} do
-      conn = put(conn, Routes.customer_path(conn, :update, customer), customer: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
+    # THEN
+    assert conn.status == 400
   end
 
-  describe "delete customer" do
-    setup [:create_customer]
+  test "POST /customer change balance for an existing customer", %{conn: conn} do
+    # GIVEN
+    email = "test@example.com"
+    phone = "123-456-7890"
+    points_to_add = 50.0
+    expected_points = 50.0
+    action = "add"
+    Customers.create_customer(email, phone)
 
-    test "deletes chosen customer", %{conn: conn, customer: customer} do
-      conn = delete(conn, Routes.customer_path(conn, :delete, customer))
-      assert response(conn, 204)
+    # WHEN
+    params = %{"email" => email, "points" => points_to_add, "action" => action}
 
-      assert_error_sent 404, fn ->
-        get(conn, Routes.customer_path(conn, :show, customer))
-      end
-    end
+    conn = put(conn, Routes.customer_path(conn, :change_balance), params)
+
+    # THEN
+    assert conn.status == 200
+    balance = Customers.get_balance_by_email(email)
+    assert balance == expected_points
   end
 
-  defp create_customer(_) do
-    customer = fixture(:customer)
-    %{customer: customer}
+  test "POST /customer subtract balance for an existing customer", %{conn: conn} do
+    # GIVEN
+    email = "test@example.com"
+    phone = "123-456-7890"
+    points_to_add = 50.0
+    expected_points = 250.0
+    current_balance = 300.0
+    action = "subtract"
+    Customers.create_customer(email, phone)
+    customer = Customers.get_by_email(email)
+    Customers.change_balance(customer, current_balance)
+    # WHEN
+    params = %{"email" => email, "points" => points_to_add, "action" => action}
+
+    conn = put(conn, Routes.customer_path(conn, :change_balance), params)
+
+    # THEN
+    assert conn.status == 200
+    balance = Customers.get_balance_by_email(email)
+    assert balance == expected_points
+  end
+
+  test "POST /customer subtract balance for an existing customer should be not go bellow 0", %{conn: conn} do
+    # GIVEN
+    email = "test@example.com"
+    phone = "123-456-7890"
+    current_balance = 300.0
+    points_to_subtract = 350.0
+    expected_points = 0
+    action = "subtract"
+    Customers.create_customer(email, phone)
+    customer = Customers.get_by_email(email)
+    Customers.change_balance(customer, current_balance)
+    # WHEN
+    params = %{"email" => email, "points" => points_to_subtract, "action" => action}
+
+    conn = put(conn, Routes.customer_path(conn, :change_balance), params)
+
+    # THEN
+    assert conn.status == 200
+    balance = Customers.get_balance_by_email(email)
+    assert balance == expected_points
+  end
+
+  test "POST /customer add balance for non-existing customer", %{conn: conn} do
+    # GIVEN
+    nonexistent_email = "nonexistent@example.com"
+    params = %{"email" => nonexistent_email, "points" => 50, "action" => "add"}
+
+    # WHEN
+    conn = put(conn, Routes.customer_path(conn, :change_balance), params)
+
+    # THEN
+    assert conn.status == 404
   end
 end

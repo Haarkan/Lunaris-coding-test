@@ -1,92 +1,49 @@
 defmodule LunarisApiWeb.OrderControllerTest do
   use LunarisApiWeb.ConnCase
+  alias LunarisApi.Customers
 
-  alias LunarisApi.Orders
-  alias LunarisApi.Orders.Order
+  setup do
+    # Insert a customer record into the test database
+    customer = insert_customer("customer@example.com", "123-456-7890")
 
-  @create_attrs %{
-    currency: "some currency",
-    amount: 120.5
-  }
-  @update_attrs %{
-    currency: "some updated currency",
-    amount: 456.7
-  }
-  @invalid_attrs %{currency: nil, amount: nil}
-
-  def fixture(:order) do
-    {:ok, order} = Orders.create_order(@create_attrs)
-    order
+    {:ok, customer: customer}
   end
 
-  setup %{conn: conn} do
-    {:ok, conn: put_req_header(conn, "accept", "application/json")}
+  defp insert_customer(email, phone) do
+    Customers.create_customer(email,  phone)
   end
 
-  describe "index" do
-    test "lists all orders", %{conn: conn} do
-      conn = get(conn, Routes.order_path(conn, :index))
-      assert json_response(conn, 200)["data"] == []
-    end
+  test "POST /order create order for an existing customer", %{conn: conn} do
+    # GIVEN
+    params = %{
+      "email" => "customer@example.com",
+      "amount" => 100.0,
+      "currency" => "JPY"
+    }
+    expected_balance = 1.0
+
+    # WHEN
+    conn = post(conn, Routes.order_path(conn, :create_order), params)
+
+    # THEN
+    assert conn.status == 201
+    updated_customer = Customers.get_by_email("customer@example.com")
+    assert updated_customer.balance == expected_balance
   end
 
-  describe "create order" do
-    test "renders order when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.order_path(conn, :create), order: @create_attrs)
-      assert %{"id" => id} = json_response(conn, 201)["data"]
+  # Test for POST /order create order for a non-existing customer
+  test "POST /order create order for a non-existing customer", %{conn: conn} do
+    # GIVEN
+    params = %{
+      "email" => "nonexistent@example.com",
+      "amount" => 100.0,
+      "currency" => "JPY"
+    }
 
-      conn = get(conn, Routes.order_path(conn, :show, id))
+    # WHEN
+    conn = post(conn, Routes.order_path(conn, :create_order), params)
 
-      assert %{
-               "id" => id,
-               "amount" => 120.5,
-               "currency" => "some currency"
-             } = json_response(conn, 200)["data"]
-    end
-
-    test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.order_path(conn, :create), order: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
-  end
-
-  describe "update order" do
-    setup [:create_order]
-
-    test "renders order when data is valid", %{conn: conn, order: %Order{id: id} = order} do
-      conn = put(conn, Routes.order_path(conn, :update, order), order: @update_attrs)
-      assert %{"id" => ^id} = json_response(conn, 200)["data"]
-
-      conn = get(conn, Routes.order_path(conn, :show, id))
-
-      assert %{
-               "id" => id,
-               "amount" => 456.7,
-               "currency" => "some updated currency"
-             } = json_response(conn, 200)["data"]
-    end
-
-    test "renders errors when data is invalid", %{conn: conn, order: order} do
-      conn = put(conn, Routes.order_path(conn, :update, order), order: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
-  end
-
-  describe "delete order" do
-    setup [:create_order]
-
-    test "deletes chosen order", %{conn: conn, order: order} do
-      conn = delete(conn, Routes.order_path(conn, :delete, order))
-      assert response(conn, 204)
-
-      assert_error_sent 404, fn ->
-        get(conn, Routes.order_path(conn, :show, order))
-      end
-    end
-  end
-
-  defp create_order(_) do
-    order = fixture(:order)
-    %{order: order}
+    # THEN
+    assert conn.status == 404
   end
 end

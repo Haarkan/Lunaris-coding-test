@@ -25,22 +25,21 @@ defmodule LunarisApiWeb.CustomerController do
         "phone" => phone
       }) do
 
-    Customers.create_customer(email, phone)
-    |> case do
+    case Customers.create_customer(email, phone) do
       {:ok, _} ->
         conn
         |> put_status(:created)
         |> json(%{message: "Customer created"})
+
       {:error, reason} ->
         conn
         |> put_status(:bad_request)
-        |> json(%{message: "User already exists "})
-      end
+        |> json(%{message: "User already exists"})
+    end
   end
 
-  @valid_actions ["add", "substract"]
+  @valid_actions ["add", "subtract"]
   def change_balance(conn, %{"email" => email, "points" => points, "action" => action}) when action in @valid_actions do
-
     case Customers.get_by_email(email) do
       nil ->
         conn
@@ -49,10 +48,10 @@ defmodule LunarisApiWeb.CustomerController do
 
       customer ->
         adjusted_points =
-          case {action, customer.balance < points} do
-            {"substract", true} -> -customer.balance
-            {"substract", false} -> -points
-            {"add", _} -> points
+          case action do
+            "subtract" when customer.balance < points -> -customer.balance
+            "subtract" -> -points
+            "add" -> points
           end
 
         case Customers.change_balance(customer, adjusted_points) do
