@@ -31,40 +31,41 @@ defmodule LunarisApiWeb.CustomerController do
         conn
         |> put_status(:created)
         |> json(%{message: "Customer created"})
-      {:error, _} ->
+      {:error, reason} ->
         conn
-        |> put_status(:internal_server_error)
-        |> json(%{message: "Error while create user"})
+        |> put_status(:bad_request)
+        |> json(%{message: "User already exists "})
       end
   end
 
   @valid_actions ["add", "substract"]
   def change_balance(conn, %{"email" => email, "points" => points, "action" => action}) when action in @valid_actions do
 
-      case Customers.get_by_email(email) do
-        nil ->
-          conn
-          |> put_status(:not_found)
-          |> json(%{error: "Customer not found"})
+    case Customers.get_by_email(email) do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "Customer not found"})
 
-        customer ->
-          adjusted_points =
-            case action do
-              "add" -> points
-              "substract" -> -points
-            end
-
-          case Customers.change_balance(customer, adjusted_points) do
-            {:ok, _} ->
-              conn
-              |> put_status(:ok)
-              |> json(%{message: "Balance changed!"})
-
-            {:error, _} ->
-              conn
-              |> put_status(:internal_server_error)
-              |> json(%{message: "Error while changing balance"})
+      customer ->
+        adjusted_points =
+          case {action, customer.balance < points} do
+            {"substract", true} -> -customer.balance
+            {"substract", false} -> -points
+            {"add", _} -> points
           end
-      end
+
+        case Customers.change_balance(customer, adjusted_points) do
+          {:ok, _} ->
+            conn
+            |> put_status(:ok)
+            |> json(%{message: "Balance changed!"})
+
+          {:error, _} ->
+            conn
+            |> put_status(:bad_request)
+            |> json(%{message: "Error while changing balance"})
+        end
+    end
   end
 end
