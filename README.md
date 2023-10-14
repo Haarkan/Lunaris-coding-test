@@ -1,13 +1,23 @@
 # LunarisApi
 
+## Create database using dock
+
+In order to proceed you will need to have docker installed.
+
+To create the Postgres database, run:
+
+```
+docker run --name lunaris-db -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -p 5500:5432 -d postgres
+```
+
 ## To run the server:
 
 - Install dependencies with `mix deps.get`
-- Create and migrate your database with `mix ecto.setup`
+- Migrate database with `mix ecto.migrate`
 - Run tests with `mix test`, they all should succeed
 - Start Phoenix endpoint with `mix phx.server`
 
-# Configuration
+## Configuration
 
 You can easly customize the reward percentage in `lunaris_api/config/config.exs` by modifying the property `point_percentage`
 
@@ -79,6 +89,7 @@ curl --location --request PUT 'http://localhost:4000/api/customer/balance' \
 ## Things that could (or should) be improved
 
 - Input validation on email and phone number
+- Obviouly db's username and password should not be on github
 - More in deep @docs
 - Customer authentication on order creation
 - Store the percentage in database for friendlier configuration (would require admin auth)
