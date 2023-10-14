@@ -5,7 +5,6 @@ defmodule LunarisApiWeb.CustomerController do
   use LunarisApiWeb, :controller
 
   alias LunarisApi.Customers
-  alias LunarisApi.Customers.Customer
 
   action_fallback(LunarisApiWeb.FallbackController)
 
@@ -40,7 +39,7 @@ defmodule LunarisApiWeb.CustomerController do
         |> put_status(:created)
         |> json(%{message: "Customer created"})
 
-      {:error, reason} ->
+      {:error, _} ->
         conn
         |> put_status(:bad_request)
         |> json(%{message: "User already exists"})
