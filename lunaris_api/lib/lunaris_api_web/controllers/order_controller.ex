@@ -21,10 +21,8 @@ defmodule LunarisApiWeb.OrderController do
       |> json(%{error: "Customer not found"})
     end
 
-
     order =
       %Order{customer_id: customer.id, amount: amount, currency: currency}
-
 
     conn
     |> put_status(:created)
