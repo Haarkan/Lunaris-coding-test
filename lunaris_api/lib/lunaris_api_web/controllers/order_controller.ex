@@ -1,4 +1,7 @@
 defmodule LunarisApiWeb.OrderController do
+  @moduledoc """
+  The controller for the orders
+  """
   use LunarisApiWeb, :controller
   require Logger
   alias LunarisApi.Customers
@@ -8,6 +11,10 @@ defmodule LunarisApiWeb.OrderController do
 
   action_fallback(LunarisApiWeb.FallbackController)
 
+  @doc """
+  Creates an order on POST /order
+  Triggers reward function
+  """
   def create_order(conn, %{
         "email" => email,
         "amount" => amount,
@@ -36,6 +43,9 @@ defmodule LunarisApiWeb.OrderController do
 
   end
 
+  @doc """
+  Rewards a customer with points calculated according to a percentage set in application config
+  """
   defp reward(customer, price) do
     percentage = LunarisApi.PointPercentage.percentage()
     points = percentage / 100 * price

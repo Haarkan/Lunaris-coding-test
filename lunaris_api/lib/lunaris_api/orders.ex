@@ -10,15 +10,6 @@ defmodule LunarisApi.Orders do
 
   @doc """
   Creates a order.
-
-  ## Examples
-
-      iex> create_order(%{field: value})
-      {:ok, %Order{}}
-
-      iex> create_order(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
    def create_order(order), do: Repo.insert(Order.changeset(%Order{}, order))
 end

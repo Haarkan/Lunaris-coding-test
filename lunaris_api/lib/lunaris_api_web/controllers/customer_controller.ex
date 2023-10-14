@@ -1,4 +1,7 @@
 defmodule LunarisApiWeb.CustomerController do
+  @doc """
+  The controller for the customers
+  """
   use LunarisApiWeb, :controller
 
   alias LunarisApi.Customers
@@ -6,6 +9,9 @@ defmodule LunarisApiWeb.CustomerController do
 
   action_fallback(LunarisApiWeb.FallbackController)
 
+  @doc """
+  Returns a customer's balance on GET /customers/:email/balance
+  """
   def get_balance(conn, %{"email" => email}) do
     case Customers.get_balance_by_email(email) do
       nil ->
@@ -20,6 +26,9 @@ defmodule LunarisApiWeb.CustomerController do
     end
   end
 
+  @doc """
+  Creates a customer's balance on POST /customers
+  """
   def create_customer(conn, %{
         "email" => email,
         "phone" => phone
@@ -38,6 +47,9 @@ defmodule LunarisApiWeb.CustomerController do
     end
   end
 
+  @doc """
+  Adds or subtracts points to a customer
+  """
   @valid_actions ["add", "subtract"]
   def change_balance(conn, %{"email" => email, "points" => points, "action" => action}) when action in @valid_actions do
     case Customers.get_by_email(email) do
