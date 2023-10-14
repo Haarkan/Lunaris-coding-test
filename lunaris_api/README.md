@@ -7,6 +7,10 @@
 - Run tests with `mix test`, they all should succeed
 - Start Phoenix endpoint with `mix phx.server`
 
+# Configuration
+
+You can easly customize the reward percentage in `lunaris_api/config/config.exs` by modifying the property `point_percentage`
+
 ## HTTP Queries
 
 - To create a customer :
@@ -26,10 +30,47 @@ curl --location --request POST 'http://localhost:4000/api/customer' \
 curl --location --request POST 'http://localhost:4000/api/order' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-  "email": "a.hou@a.fr",
+  "email": "test@email.com",
   "amount": 1000.0,
   "currency" : "jpy"
 }'
 ```
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+- To create an order :
+
+```
+curl --location --request POST 'http://localhost:4000/api/order' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "email": "test@email.fr",
+  "amount": 1000.0,
+  "currency" : "jpy"
+}'
+```
+
+- To get a customer's balance :
+  `curl --location -g --request GET 'localhost:4000/api/customer/{YOUR_EMAIL}/balance'`
+
+- To add points to a customer :
+
+```
+curl --location --request PUT 'http://localhost:4000/api/customer/balance' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "email": "test@email.com",
+    "points": 10,
+    "action": "add"
+}'
+```
+
+- To subtract points to a customer :
+
+```
+curl --location --request PUT 'http://localhost:4000/api/customer/balance' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "email": "test@email.com",
+    "points": 10,
+    "action": "subtract"
+}'
+```
