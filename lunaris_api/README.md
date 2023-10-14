@@ -3,7 +3,7 @@
 ## To run the server:
 
 - Install dependencies with `mix deps.get`
-- Create and migrate your database with `mix ecto.setup``
+- Create and migrate your database with `mix ecto.setup`
 - Run tests with `mix test`, they all should succeed
 - Start Phoenix endpoint with `mix phx.server`
 
@@ -49,6 +49,7 @@ curl --location --request POST 'http://localhost:4000/api/order' \
 ```
 
 - To get a customer's balance :
+
   `curl --location -g --request GET 'localhost:4000/api/customer/{YOUR_EMAIL}/balance'`
 
 - To add points to a customer :
