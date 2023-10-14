@@ -7,7 +7,7 @@
 - Run tests with `mix test`, they all should succeed
 - Start Phoenix endpoint with `mix phx.server`
 
-# Configuration
+## Configuration
 
 You can easly customize the reward percentage in `lunaris_api/config/config.exs` by modifying the property `point_percentage`
 
@@ -74,3 +74,10 @@ curl --location --request PUT 'http://localhost:4000/api/customer/balance' \
     "action": "subtract"
 }'
 ```
+
+## Things that could (or should) be improved
+
+- Input validation on email and phone number
+- More in deep @docs
+- Customer authentication on order creation
+- Store the percentage in database for friendlier configuration (would require admin auth)
