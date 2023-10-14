@@ -21,11 +21,22 @@ defmodule LunarisApiWeb.OrderController do
       |> json(%{error: "Customer not found"})
     end
 
-    order =
-      %Order{customer_id: customer.id, amount: amount, currency: currency}
+    Orders.create_order(%{customer_id: customer.id, amount: amount, currency: currency})
+    |> case do
+      {:ok, _} ->
+        reward(customer, amount)
+        conn
+        |> put_status(:created)
+        |> json(%{message: "Order created"})
+      {:error, _} ->
+        conn
+        |> put_status(:internal_server_error)
+        |> json(%{message: "Error while create user"})
+      end
+  end
 
-    conn
-    |> put_status(:created)
-    |> json(%{message: "Order processed successfully"})
+  def reward(customer, price) do
+    points = price * 0.01
+    Customers.reward_points(customer, points)
   end
 end
